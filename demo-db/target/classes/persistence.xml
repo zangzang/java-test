@@ -1,0 +1,13 @@
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence" version="3.0">
+    <persistence-unit name="my-persistence-unit">
+        <class>com.example.entity.User</class>
+        <properties>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://10.100.10.122:5432/testdb"/>
+            <property name="jakarta.persistence.jdbc.user" value="juro"/>
+            <property name="jakarta.persistence.jdbc.password" value="jurodb_-1q2w3e4r5t"/>
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+        </properties>
+    </persistence-unit>
+</persistence>

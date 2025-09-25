@@ -1,0 +1,12 @@
+D:\ws\java-test\demo-db\src\main\java\com\example\dao\JooqUserDao.java
+D:\ws\java-test\demo-db\src\main\java\com\example\dao\JpaUserDao.java
+D:\ws\java-test\demo-db\src\main\java\com\example\entity\User.java
+D:\ws\java-test\demo-db\src\main\java\com\example\Main.java
+D:\ws\java-test\demo-db\target\generated-sources\jooq\com\example\generated\DefaultCatalog.java
+D:\ws\java-test\demo-db\target\generated-sources\jooq\com\example\generated\Keys.java
+D:\ws\java-test\demo-db\target\generated-sources\jooq\com\example\generated\Public.java
+D:\ws\java-test\demo-db\target\generated-sources\jooq\com\example\generated\Tables.java
+D:\ws\java-test\demo-db\target\generated-sources\jooq\com\example\generated\tables\daos\UsersDao.java
+D:\ws\java-test\demo-db\target\generated-sources\jooq\com\example\generated\tables\pojos\Users.java
+D:\ws\java-test\demo-db\target\generated-sources\jooq\com\example\generated\tables\records\UsersRecord.java
+D:\ws\java-test\demo-db\target\generated-sources\jooq\com\example\generated\tables\Users.java
