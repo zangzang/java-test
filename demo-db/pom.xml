@@ -15,12 +15,9 @@
         1.0-SNAPSHOT
     </version>
     <properties>
-        <maven.compiler.source>
-            25
-        </maven.compiler.source>
-        <maven.compiler.target>
-            25
-        </maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+    <jooq.version>3.20.6</jooq.version>
     </properties>
     <dependencies>
         <!-- PostgreSQL -->
@@ -60,40 +57,29 @@
         </dependency>
         <!-- jOOQ -->
         <dependency>
-            <groupId>
-                org.jooq
-            </groupId>
-            <artifactId>
-                jooq
-            </artifactId>
-            <version>
-                3.20.3
-            </version>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <version>${jooq.version}</version>
         </dependency>
         <dependency>
-            <groupId>
-                org.jooq
-            </groupId>
-            <artifactId>
-                jooq-meta
-            </artifactId>
-            <version>
-                3.20.3
-            </version>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-meta</artifactId>
+            <version>${jooq.version}</version>
         </dependency>
         <dependency>
-            <groupId>
-                org.jooq
-            </groupId>
-            <artifactId>
-                jooq-jpa-extensions
-            </artifactId>
-            <version>
-                3.20.3
-            </version>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-jpa-extensions</artifactId>
+            <version>${jooq.version}</version>
+        </dependency>
+        <!-- Optional: Logback to control logging output (can add logback.xml to resources) -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.11</version>
         </dependency>
     </dependencies>
     <build>
+        <finalName>demo-db-runner</finalName>
         <resources>
             <resource>
                 <directory>
@@ -125,78 +111,44 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- jOOQ Codegen -->
+                <!-- jOOQ Codegen -->
             <plugin>
-                <groupId>
-                    org.jooq
-                </groupId>
-                <artifactId>
-                    jooq-codegen-maven
-                </artifactId>
-                <version>
-                    3.20.3
-                </version>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <version>${jooq.version}</version>
                 <executions>
                     <execution>
-                        <id>
-                            generate
-                        </id>
-                        <phase>
-                            generate-sources
-                        </phase>
+                        <id>generate</id>
+                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>
-                                generate
-                            </goal>
+                            <goal>generate</goal>
                         </goals>
                         <configuration>
                             <jdbc>
-                                <driver>
-                                    org.postgresql.Driver
-                                </driver>
-                                <url>
-                                    jdbc:postgresql://10.100.10.122:5432/testdb
-                                </url>
-                                <user>
-                                    juro
-                                </user>
-                                <password>
-                                    jurodb_-1q2w3e4r5t
-                                </password>
+                                <driver>org.postgresql.Driver</driver>
+                                <url>jdbc:postgresql://10.100.10.122:5432/testdb</url>
+                                <user>juro</user>
+                                <password>jurodb_-1q2w3e4r5t</password>
                             </jdbc>
                             <generator>
                                 <database>
-                                    <name>
-                                        org.jooq.meta.postgres.PostgresDatabase
-                                    </name>
-                                    <includes>
-                                        .*
-                                    </includes>
-                                    <inputSchema>
-                                        public
-                                    </inputSchema>
+                                    <name>org.jooq.meta.postgres.PostgresDatabase</name>
+                                    <includes>.*</includes>
+                                    <inputSchema>public</inputSchema>
                                     <properties>
                                         <property>
                                             <key>databaseVersion</key>
-                                            <value>16</value>
+                                            <value>16.9</value>
                                         </property>
                                     </properties>
                                 </database>
                                 <generate>
-                                    <daos>
-                                        true
-                                    </daos>
-                                    <pojos>
-                                        true
-                                    </pojos>
+                                    <daos>true</daos>
+                                    <pojos>true</pojos>
                                 </generate>
                                 <target>
-                                    <packageName>
-                                        com.example.generated
-                                    </packageName>
-                                    <directory>
-                                        target/generated-sources/jooq
-                                    </directory>
+                                    <packageName>com.example.generated</packageName>
+                                    <directory>target/generated-sources/jooq</directory>
                                 </target>
                             </generator>
                         </configuration>
@@ -228,8 +180,52 @@
                             </mainClass>
                         </configuration>
                     </plugin>
+                    <!-- Shade plugin to build executable uber-jar -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <filters>
+                                        <filter>
+                                            <artifact>*:*</artifact>
+                                            <excludes>
+                                                <exclude>META-INF/LICENSE</exclude>
+                                                <exclude>META-INF/LICENSE.txt</exclude>
+                                                <exclude>META-INF/LICENSE.md</exclude>
+                                                <exclude>META-INF/NOTICE</exclude>
+                                                <exclude>META-INF/NOTICE.txt</exclude>
+                                                <exclude>META-INF/NOTICE.md</exclude>
+                                                <exclude>META-INF/README.txt</exclude>
+                                                <exclude>module-info.class</exclude>
+                                                <exclude>META-INF/MANIFEST.MF</exclude>
+                                            </excludes>
+                                        </filter>
+                                    </filters>
+                                    <transformers>
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                            <mainClass>com.example.Main</mainClass>
+                                        </transformer>
+                                    </transformers>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- logging to control jOOQ warnings if desired -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.6.0</version>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
     </profiles>
+    
 </project>

@@ -196,4 +196,14 @@ mvn -q compile
 
 - 결론: 이 경고는 대부분 무해합니다. 빠른 해결을 원하면 `databaseVersion`을 명시하세요. 조직 정책상 의존성 업그레이드가 적절하면 jOOQ를 업그레이드하세요.
 
+## 추가 팁: 빌드 로그에서 jOOQ 'Version mismatch' 경고 숨기기
+
+경고가 정보성이고 실제 동작에 영향이 없다면, CI나 로컬 빌드 출력에서 해당 라인을 필터링할 수 있습니다. 예를 들어 Windows PowerShell에서는 다음과 같이 필터링할 수 있습니다:
+
+```powershell
+mvn -Prun -DskipTests package 2>&1 | Select-String -NotMatch 'Version mismatch'
+```
+
+이 명령은 빌드 출력을 파이프라인으로 넘겨 'Version mismatch' 문자열을 포함하는 라인을 제거합니다. 경고를 근본적으로 제거하려면 README에 설명된 "databaseVersion" 설정 또는 jOOQ 업그레이드를 적용하세요.
+
 - 이 프로젝트는 데모 목적입니다. 프로덕션 환경에서는 DB 마이그레이션 전략 및 의존성 관리 정책을 수립하세요.
