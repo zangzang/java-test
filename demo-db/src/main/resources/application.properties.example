@@ -1,0 +1,11 @@
+# Copy to application.properties and adjust values for your environment
+# db.url=jdbc:postgresql://localhost:5432/testdb
+# db.user=youruser
+# db.password=yourpassword
+# app.iterations=1000
+
+db.url=jdbc:postgresql://localhost:5432/testdb
+db.user=juro
+# Replace with your password before running locally
+# db.password=jurodb_-1q2w3e4r5t
+app.iterations=1000

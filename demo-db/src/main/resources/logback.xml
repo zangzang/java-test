@@ -1,0 +1,15 @@
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %-5level %logger - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Suppress jOOQ version mismatch warning by setting its logger to ERROR -->
+  <logger name="org.jooq.tools.JooqLogger" level="ERROR" />
+  <logger name="org.jooq" level="ERROR" />
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
