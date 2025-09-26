@@ -95,6 +95,32 @@ mvn exec:java -Prun
 3. JPA와 jOOQ를 사용한 데이터 삽입 벤치마킹
 4. 데이터 조회 벤치마킹
 
+### 패키징 (실행 가능한 JAR 만들기)
+
+프로젝트는 Maven Shade 플러그인을 사용해 실행 가능한 uber-JAR을 만들도록 `run` 프로파일에 설정되어 있습니다. 패키징하려면 다음을 실행하세요:
+
+```powershell
+mvn -Prun -DskipTests package
+```
+
+성공하면 생성되는 파일은 `target/demo-db-runner.jar` 입니다.
+
+### 패키징한 JAR 실행
+
+패키징된 JAR을 직접 실행하려면:
+
+Windows (PowerShell):
+```powershell
+java -jar target\demo-db-runner.jar
+```
+
+Cross-platform (bash):
+```bash
+java -jar target/demo-db-runner.jar
+```
+
+실행 시 `application.properties`에 설정된 DB 정보로 접속하여 벤치마크를 수행합니다. JAR 내부에는 `logback.xml`이 포함되어 있어 런타임 로그 레벨이 조정되어 있습니다.
+
 ## 벤치마크 결과 예시
 
 실행 시 다음과 같은 성능 측정 결과를 볼 수 있습니다:
