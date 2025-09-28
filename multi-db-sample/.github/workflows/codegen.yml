@@ -1,0 +1,51 @@
+name: jOOQ Codegen (DDL)
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit generated sources back to repo (yes/no)'
+        required: false
+        default: 'no'
+
+jobs:
+  codegen:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Run jOOQ codegen (DDL)
+        run: |
+          mvn -pl postgres-module -Pcodegen-ddl clean generate-sources
+
+      - name: Upload generated sources
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jooq-generated-src
+          path: postgres-module/src/main/java/com/example/entity/generated
+
+      - name: Create Pull Request with generated sources
+        if: ${{ github.event.inputs.commit == 'yes' }}
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(codegen): update jOOQ generated sources"
+          committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          branch: "auto/jooq-generated-${{ github.run_id }}"
+          title: "chore: update jOOQ generated sources"
+          body: |
+            This PR was created automatically by the jOOQ codegen workflow.
+            Please review the generated sources before merging.

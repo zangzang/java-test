@@ -1,15 +1,32 @@
 <configuration>
+  <!-- Console appender with structured pattern (time thread level logger - message) -->
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} %-5level %logger - %msg%n</pattern>
+  <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{db} %X{runId}] - %msg%n</pattern>
     </encoder>
   </appender>
 
-  <!-- Suppress jOOQ version mismatch warning by setting its logger to ERROR -->
-  <logger name="org.jooq.tools.JooqLogger" level="ERROR" />
-  <logger name="org.jooq" level="ERROR" />
+  <!-- Recommended: keep jOOQ logs informative but avoid verbose internal warnings in normal runs -->
+  <logger name="org.jooq.tools.JooqLogger" level="WARN" />
+  <logger name="org.jooq" level="WARN" />
 
+  <!-- Root logger at INFO for normal runs -->
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>
+
+  <!-- Optional rolling file appender for CI artifacts or local debugging. Defined but not referenced so it's inactive by default. -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/demo-db.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/demo-db.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+  <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{db} %X{runId}] - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Note: FILE appender is defined above but not attached to root. To enable file logging, add an <appender-ref ref="FILE"/> to the <root> element. -->
+
 </configuration>

@@ -32,6 +32,24 @@
                 42.6.0
             </version>
         </dependency>
+        <!-- MySQL -->
+        <dependency>
+            <groupId>
+                com.mysql
+            </groupId>
+            <artifactId>
+                mysql-connector-j
+            </artifactId>
+            <version>
+                8.0.33
+            </version>
+        </dependency>
+        <!-- MSSQL -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>12.6.1.jre11</version>
+        </dependency>
         <!-- JPA / Hibernate -->
         <dependency>
             <groupId>
@@ -111,50 +129,6 @@
                     </execution>
                 </executions>
             </plugin>
-                <!-- jOOQ Codegen -->
-            <plugin>
-                <groupId>org.jooq</groupId>
-                <artifactId>jooq-codegen-maven</artifactId>
-                <version>${jooq.version}</version>
-                <executions>
-                    <execution>
-                        <id>generate</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <jdbc>
-                                <driver>org.postgresql.Driver</driver>
-                                <url>jdbc:postgresql://10.100.10.122:5432/testdb</url>
-                                <user>juro</user>
-                                <password>jurodb_-1q2w3e4r5t</password>
-                            </jdbc>
-                            <generator>
-                                <database>
-                                    <name>org.jooq.meta.postgres.PostgresDatabase</name>
-                                    <includes>.*</includes>
-                                    <inputSchema>public</inputSchema>
-                                    <properties>
-                                        <property>
-                                            <key>databaseVersion</key>
-                                            <value>16.9</value>
-                                        </property>
-                                    </properties>
-                                </database>
-                                <generate>
-                                    <daos>true</daos>
-                                    <pojos>true</pojos>
-                                </generate>
-                                <target>
-                                    <packageName>com.example.generated</packageName>
-                                    <directory>target/generated-sources/jooq</directory>
-                                </target>
-                            </generator>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -162,8 +136,64 @@
             <id>
                 run
             </id>
+            <properties>
+                <db.driver>org.postgresql.Driver</db.driver>
+                <db.url>jdbc:postgresql://10.100.10.122:5432/testdb</db.url>
+                <db.user>juro</db.user>
+                <db.password>jurodb_-1q2w3e4r5t</db.password>
+                <db.dialect>org.hibernate.dialect.PostgreSQLDialect</db.dialect>
+                <db.sqlDialect>POSTGRES</db.sqlDialect>
+            </properties>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen-maven</artifactId>
+                        <version>${jooq.version}</version>
+                        <executions>
+                            <execution>
+                                <id>generate</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <jdbc>
+                                        <driver>${db.driver}</driver>
+                                        <url>${db.url}</url>
+                                        <user>${db.user}</user>
+                                        <password>${db.password}</password>
+                                    </jdbc>
+                                    <generator>
+                                        <database>
+                                            <name>org.jooq.meta.postgres.PostgresDatabase</name>
+                                            <includes>.*</includes>
+                                            <inputSchema>public</inputSchema>
+                                            <properties>
+                                                <property>
+                                                    <key>databaseVersion</key>
+                                                    <value>16.9</value>
+                                                </property>
+                                            </properties>
+                                        </database>
+                                        <generate>
+                                            <daos>true</daos>
+                                            <pojos>true</pojos>
+                                        </generate>
+                                        <target>
+                                            <packageName>com.example.generated</packageName>
+                                            <directory>target/generated-sources/jooq</directory>
+                                        </target>
+                                    </generator>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.13.0</version>
+                    </plugin>
                     <plugin>
                         <groupId>
                             org.codehaus.mojo
@@ -178,6 +208,9 @@
                             <mainClass>
                                 com.example.Main
                             </mainClass>
+                            <systemPropertyVariables>
+                                <db>postgres</db>
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
                     <!-- Shade plugin to build executable uber-jar -->
@@ -223,6 +256,199 @@
                         <artifactId>maven-dependency-plugin</artifactId>
                         <version>3.6.0</version>
                     </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>mysql</id>
+            <properties>
+                <db.driver>com.mysql.cj.jdbc.Driver</db.driver>
+                <db.url>jdbc:mysql://10.100.10.122:3306/juro</db.url>
+                <db.user>juro</db.user>
+                <db.password>jurodb_-1q2w3e4r5t</db.password>
+                <db.dialect>org.hibernate.dialect.MySQLDialect</db.dialect>
+                <db.sqlDialect>MYSQL</db.sqlDialect>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen-maven</artifactId>
+                        <version>${jooq.version}</version>
+                        <executions>
+                            <execution>
+                                <id>generate</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <jdbc>
+                                        <driver>${db.driver}</driver>
+                                        <url>${db.url}</url>
+                                        <user>${db.user}</user>
+                                        <password>${db.password}</password>
+                                    </jdbc>
+                                    <generator>
+                                        <database>
+                                            <name>org.jooq.meta.mysql.MySQLDatabase</name>
+                                            <includes>.*</includes>
+                                            <inputSchema>juro</inputSchema>
+                                        </database>
+                                        <generate>
+                                            <daos>true</daos>
+                                            <pojos>true</pojos>
+                                        </generate>
+                                        <target>
+                                            <packageName>com.example.generated</packageName>
+                                            <directory>target/generated-sources/jooq</directory>
+                                        </target>
+                                    </generator>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.13.0</version>
+                    </plugin>
+                    <plugin>
+                        <groupId>
+                            org.codehaus.mojo
+                        </groupId>
+                        <artifactId>
+                            exec-maven-plugin
+                        </artifactId>
+                        <version>
+                            3.5.1
+                        </version>
+                        <configuration>
+                            <mainClass>
+                                com.example.Main
+                            </mainClass>
+                            <systemPropertyVariables>
+                                <db>mysql</db>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>mssql</id>
+            <properties>
+                <db.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</db.driver>
+                <db.url>jdbc:sqlserver://10.100.10.122:1433;databaseName=JwjangDB;encrypt=false;trustServerCertificate=true</db.url>
+                <db.user>sa</db.user>
+                <db.password>jurodb_-1q2w3e4r5t</db.password>
+                <db.dialect>org.hibernate.dialect.SQLServerDialect</db.dialect>
+                <db.sqlDialect>SQLSERVER</db.sqlDialect>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>add-source</id>
+                                <phase>none</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.13.0</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/JooqUserDao.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>
+                            org.codehaus.mojo
+                        </groupId>
+                        <artifactId>
+                            exec-maven-plugin
+                        </artifactId>
+                        <version>
+                            3.5.1
+                        </version>
+                        <configuration>
+                            <mainClass>
+                                com.example.Main
+                            </mainClass>
+                            <systemPropertyVariables>
+                                <db>mssql</db>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                        <plugin>
+                            <groupId>org.jooq</groupId>
+                            <artifactId>jooq-codegen-maven</artifactId>
+                            <version>${jooq.version}</version>
+                            <executions>
+                                <execution>
+                                    <id>generate</id>
+                                    <phase>generate-sources</phase>
+                                    <goals>
+                                        <goal>generate</goal>
+                                    </goals>
+                                    <configuration>
+                                        <jdbc>
+                                            <driver>${db.driver}</driver>
+                                            <url>${db.url}</url>
+                                            <user>${db.user}</user>
+                                            <password>${db.password}</password>
+                                        </jdbc>
+                                        <generator>
+                                            <database>
+                                                <!-- Use the generic JDBC-based database meta to avoid commercial-only SQLServerDatabase -->
+                                                <name>org.jooq.meta.jdbc.JDBCDatabase</name>
+                                                <includes>.*</includes>
+                                                <inputSchema>dbo</inputSchema>
+                                            </database>
+                                            <generate>
+                                                <daos>true</daos>
+                                                <pojos>true</pojos>
+                                            </generate>
+                                            <target>
+                                                <packageName>com.example.generated</packageName>
+                                                <directory>target/generated-sources/jooq</directory>
+                                            </target>
+                                        </generator>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                            <dependencies>
+                                <dependency>
+                                    <groupId>org.jooq</groupId>
+                                    <artifactId>jooq</artifactId>
+                                    <version>${jooq.version}</version>
+                                </dependency>
+                                <dependency>
+                                    <groupId>org.jooq</groupId>
+                                    <artifactId>jooq-meta</artifactId>
+                                    <version>${jooq.version}</version>
+                                </dependency>
+                                <dependency>
+                                    <groupId>com.microsoft.sqlserver</groupId>
+                                    <artifactId>mssql-jdbc</artifactId>
+                                    <version>12.6.1.jre11</version>
+                                </dependency>
+                            </dependencies>
+                        </plugin>
                 </plugins>
             </build>
         </profile>

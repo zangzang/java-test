@@ -1,12 +1,12 @@
 # Demo Database Project
 
-이 프로젝트는 Java를 사용하여 PostgreSQL 데이터베이스와의 상호작용을 보여주는 데모 애플리케이션입니다. JPA (Hibernate)와 jOOQ를 사용하여 데이터베이스 작업을 수행하며, 성능 벤치마킹을 포함합니다.
+이 프로젝트는 Java를 사용하여 PostgreSQL과 MySQL 데이터베이스와의 상호작용을 보여주는 데모 애플리케이션입니다. JPA (Hibernate)와 jOOQ를 사용하여 데이터베이스 작업을 수행하며, 성능 벤치마킹을 포함합니다.
 
 ## 기술 스택
 
-- **Java**: 17
+- **Java**: 25
 - **빌드 도구**: Maven
-- **데이터베이스**: PostgreSQL
+- **데이터베이스**: PostgreSQL, MySQL
 - **ORM**: JPA (Hibernate)
 - **SQL DSL**: jOOQ
 - **의존성 관리**: Maven
@@ -27,7 +27,8 @@ demo-db/
 │   │   │           ├── JpaUserDao.java # JPA DAO 클래스
 │   │   │           └── JooqUserDao.java # jOOQ DAO 클래스
 │   │   └── resources/
-│   │       ├── application.properties # 설정 파일
+│   │       ├── application.properties # 설정 파일 (기본 PostgreSQL)
+│   │       ├── application-mysql.properties # MySQL 설정 파일
 │   │       └── persistence.xml        # JPA 설정 파일
 │   └── test/
 │       └── java/                      # 테스트 코드 (현재 없음)
@@ -40,99 +41,172 @@ demo-db/
 
 ### 데이터베이스 설정
 
-1. PostgreSQL을 설치하고 실행합니다.
-2. 데이터베이스를 생성합니다:
+1. PostgreSQL과 MySQL을 설치하고 실행합니다.
+2. PostgreSQL 데이터베이스를 생성합니다:
    ```sql
    CREATE DATABASE testdb;
    CREATE USER juro WITH PASSWORD 'jurodb_-1q2w3e4r5t';
    GRANT ALL PRIVILEGES ON DATABASE testdb TO juro;
    ```
-
-3. `src/main/resources/application.properties` 파일을 편집하여 데이터베이스 연결 정보를 설정합니다:
-   ```properties
-   db.url=jdbc:postgresql://localhost:5432/testdb
-   db.user=juro
-   db.password=jurodb_-1q2w3e4r5t
-   app.iterations=1000
+3. MySQL 데이터베이스를 생성합니다:
+   ```sql
+   CREATE DATABASE juro;
+   CREATE USER 'juro'@'%' IDENTIFIED BY 'jurodb_-1q2w3e4r5t';
+   GRANT ALL PRIVILEGES ON juro.* TO 'juro'@'%';
    ```
 
-### jOOQ 코드 생성
+### Maven 프로필
 
-이 프로젝트는 jOOQ를 사용하여 데이터베이스 스키마로부터 Java 코드를 자동 생성합니다. 생성된 코드는 `target/generated-sources/jooq` 디렉토리에 위치합니다.
+프로젝트는 Maven 프로필을 사용하여 PostgreSQL과 MySQL을 분리합니다:
+- `run`: PostgreSQL용 (기본)
+- `mysql`: MySQL용
 
-jOOQ 코드 생성은 Maven 플러그인을 통해 수행되며, `pom.xml`에 다음과 같이 설정되어 있습니다:
-
-- **데이터베이스 연결**: PostgreSQL 데이터베이스에 연결하여 스키마 정보를 읽습니다.
-- **생성 대상**: 테이블, 레코드, DAO, POJO 클래스 등을 생성합니다.
-- **패키지**: `com.example.generated`
-
-코드 생성을 수동으로 실행하려면:
-```bash
-mvn generate-sources
-```
-
-빌드 시 자동으로 실행됩니다.
+각 프로필은 jOOQ 코드 생성과 실행 시 적절한 설정을 적용합니다.
 
 ## 빌드 및 실행
 
-### 빌드
+프로젝트는 Maven 프로필을 사용하여 PostgreSQL, MySQL, MSSQL을 분리합니다. 각 DB별로 컴파일과 실행을 분리하여 수행하세요.
 
-프로젝트를 빌드하려면:
+### PostgreSQL 실행
+
 ```bash
-mvn clean compile
-```
-
-### 실행
-
-애플리케이션을 실행하려면:
-```bash
+mvn clean compile -Prun
 mvn exec:java -Prun
 ```
 
-이 명령은 다음과 같은 작업을 수행합니다:
-1. 데이터베이스 연결 설정
-2. 테이블 초기화 (TRUNCATE)
-3. JPA와 jOOQ를 사용한 데이터 삽입 벤치마킹
-4. 데이터 조회 벤치마킹
+### MySQL 실행
 
-### 패키징 (실행 가능한 JAR 만들기)
-
-프로젝트는 Maven Shade 플러그인을 사용해 실행 가능한 uber-JAR을 만들도록 `run` 프로파일에 설정되어 있습니다. 패키징하려면 다음을 실행하세요:
-
-```powershell
-mvn -Prun -DskipTests package
-```
-
-성공하면 생성되는 파일은 `target/demo-db-runner.jar` 입니다.
-
-### 패키징한 JAR 실행
-
-패키징된 JAR을 직접 실행하려면:
-
-Windows (PowerShell):
-```powershell
-java -jar target\demo-db-runner.jar
-```
-
-Cross-platform (bash):
 ```bash
-java -jar target/demo-db-runner.jar
+mvn clean compile -Pmysql
+mvn exec:java -Pmysql -Ddb=mysql
 ```
 
-실행 시 `application.properties`에 설정된 DB 정보로 접속하여 벤치마크를 수행합니다. JAR 내부에는 `logback.xml`이 포함되어 있어 런타임 로그 레벨이 조정되어 있습니다.
+**주의:** MySQL 실행 시 `-Ddb=mysql` 시스템 프로퍼티를 반드시 추가하세요. 그렇지 않으면 PostgreSQL 설정으로 실행되어 오류가 발생합니다.
 
-## 벤치마크 결과 예시
+### MSSQL 실행
 
-실행 시 다음과 같은 성능 측정 결과를 볼 수 있습니다:
-
+```bash
+mvn clean compile -Pmssql
+mvn exec:java -Pmssql -Ddb=mssql
 ```
-JPA INSERT: 10581ms
-jOOQ INSERT: 6176ms
-JPA LIST INSERT: 4928ms
-jOOQ LIST INSERT: 136ms
-JPA SELECT: 286ms, count=3120
-jOOQ SELECT: 260ms, count=3120
+
+**주의:** MSSQL 실행 시 `-Ddb=mssql` 시스템 프로퍼티를 반드시 추가하세요. 그렇지 않으면 PostgreSQL 설정으로 실행되어 오류가 발생합니다.
+
+### 패키징
+
+PostgreSQL용 JAR:
+```bash
+mvn -Prun package
 ```
+
+MySQL용 JAR은 현재 지원되지 않음 (필요 시 추가 가능).
+
+## 벤치마크 결과
+
+### 벤치마크 결과 (iterations=1000)
+
+| DB | JPA INSERT | jOOQ INSERT | JPA LIST INSERT | jOOQ LIST INSERT | JPA SELECT (ms,count) | jOOQ SELECT (ms,count) |
+|---:|---:|---:|---:|---:|---:|---:|
+| PostgreSQL | 11325ms | 6340ms | 5211ms | 167ms | 280ms, 2340 | 292ms, 2340 |
+| MySQL      | 32080ms | 16531ms | 5049ms | 11593ms | 401ms, 2340 | 323ms, 2340 |
+| MSSQL      | 26152ms | 9292ms | 6003ms | 3484ms | 227ms, 2340 | 235ms, 2340 |
+
+주의: MSSQL에서 이 환경의 jOOQ 빌드에는 SQLServer용 enum이 포함되어 있지 않아, `Main`은 런타임에 jOOQ dialect enum을 찾지 못할 경우 `DSL.using(conn)`으로 안전하게 폴백하여 DSL 기반 쿼리를 수행했습니다. (이 때문에 빌드 시 경고가 출력되었고, 현재는 폴백을 사용해 벤치를 성공적으로 실행했습니다.)
+
+## 변경 이력(중요)
+
+- 2025-09-27: `JooqDslUserDao` 제거
+   - 이유: jOOQ 코드 생성(root-fix)을 적용하여 `JooqUserDao`(생성된 코드 기반 DAO)가 안정적으로 생성/컴파일되므로, 더 이상 프로젝트에 DSL 기반 대체 DAO가 필요하지 않아 제거했습니다.
+   - 영향: 코드베이스가 단순화되었고, 벤치마크는 생성된 DAO를 사용해 수행됩니다.
+
+- 2025-09-27: 종료 훅(Shutdown hook) 추가
+   - `Main.java`에 애플리케이션 종료 시 JDBC 드라이버를 `DriverManager.deregisterDriver(...)`로 해제하고, MySQL의 `AbandonedConnectionCleanupThread`가 있으면 `checkedShutdown()`을 호출하도록 정리 로직을 추가했습니다.
+   - 목적: Maven `exec:java` 실행 후에 남는 드라이버 관련 백그라운드 스레드 경고(`mysql-cj-abandoned-connection-cleanup`)를 제거하여 클린한 종료를 보장합니다.
+
+   참고: 종료 훅은 JVM이 정상적으로 종료되거나 SIGTERM 등으로 종료될 때 실행됩니다. 강제 종료(SIGKILL)에서는 실행되지 않을 수 있습니다.
+
+## 테스트(로컬 확인) — 권장 순서
+
+아래 순서로 로컬에서 빌드와 벤치 실행을 하면 필요한 코드 생성 및 런타임 동작을 검증할 수 있습니다.
+
+1. 클린 빌드 및 코드 생성 (Postgres 기본 프로필)
+
+```powershell
+mvn -f d:\ws\java-test\demo-db\pom.xml clean compile -Prun
+```
+
+2. 벤치 실행 (Postgres)
+
+```powershell
+mvn -f d:\ws\java-test\demo-db\pom.xml clean compile -Ppostgres
+mvn -f d:\ws\java-test\demo-db\pom.xml exec:java -Prun -Ddb=postgres
+```
+
+3. MySQL 벤치 실행
+
+```powershell
+mvn -f d:\ws\java-test\demo-db\pom.xml clean compile -Pmysql
+mvn -f d:\ws\java-test\demo-db\pom.xml exec:java -Pmysql -Ddb=mysql
+```
+
+4. MSSQL 벤치 실행
+
+```powershell
+mvn -f d:\ws\java-test\demo-db\pom.xml clean compile -Pmssql
+mvn -f d:\ws\java-test\demo-db\pom.xml exec:java -Pmssql -Ddb=mssql
+```
+
+5. 확인 포인트
+
+- 각 실행에서 프로그램이 정상 종료되면 `BUILD SUCCESS`가 출력되어야 합니다.
+- 프로그램 종료 시 더 이상 `mysql-cj-abandoned-connection-cleanup` 관련 경고나 "thread was interrupted but is still alive" 같은 메시지가 없어야 합니다.
+
+### 빠른 스모크 테스트 (CI용)
+
+CI 환경에서는 DB 접근이 제한될 수 있으므로 간단한 컴파일-스모크를 추천합니다:
+
+```powershell
+mvn -f d:\ws\java-test\demo-db\pom.xml -DskipTests package
+```
+
+위 명령은 코드 생성 플러그인이 실행되는 경우에도 컴파일까지 확인합니다(네트워크가 필요한 경우 CI에서 별도 DB mock 또는 테스트 컨테이너가 필요할 수 있음).
+
+
+### 성능 비교 요약
+
+- 테이블/데이터량 관련
+   - 벤치마크는 동일한 스키마(간단한 `users` 테이블)와 동일한 로우 수(실행 시 내부적으로 생성되는 레코드 수, 위의 SELECT 결과의 count=2340)를 사용했습니다. 따라서 DB별 성능 차이는 주로 데이터베이스 엔진의 처리 속도, 네트워크 레이턴시(같은 호스트 환경에서 발생할 경우 작지만 존재), JDBC 드라이버 최적화, 그리고 각 DB의 기본 설정(트랜잭션 처리, 디스크 동기화 등)에 기인합니다.
+
+- INSERT (단건 삽입)
+   - PostgreSQL이 MySQL보다 빠른 결과를 보였습니다. (Postgres 11325ms vs MySQL 32080ms). 이 차이는 MySQL의 JDBC 드라이버/서버 설정(예: fsync, binlog 동기화), 그리고 본 예제에서 사용한 MySQL 서버의 디스크/네트워크 성능 영향일 가능성이 큽니다.
+
+- jOOQ LIST INSERT (배치/집단 삽입)
+   - jOOQ의 배치 삽입 성능은 DB별로 크게 다릅니다. 이번 측정에서 PostgreSQL의 jOOQ LIST INSERT가 매우 빠른 편(167ms)인 반면 MySQL은 느린 편(11593ms)으로 보였습니다. 이 차이는 드라이버에서 배치 구현 방식, JDBC 드라이버의 기본 batch size, 그리고 MySQL 서버의 설정(autocommit, tx flush 정책 등)에 민감합니다.
+
+- SELECT
+   - 세 DB 모두 단일-스레드 기준 유사한 SELECT 응답 시간을 보였습니다(대략 200~400ms 범위). 이는 인메모리 캐시, 인덱스, 네트워크 레이턴시 등 여러 요인의 영향을 받습니다. 본 벤치의 목적은 CRUD 비교이므로 SELECT는 참고용입니다.
+
+- 해석 및 권장
+   - 배치 성능 차이를 줄이려면 MySQL에서 JDBC 배치 크기와 autocommit 설정을 조정해보세요. MySQL의 경우 커밋 빈도와 binlog 설정(binlog_format, sync_binlog 등)이 큰 영향을 줄 수 있습니다.
+   - 테스트 결과는 환경(하드웨어, DB 설정, 네트워크)에 민감합니다. CI나 다른 머신에서 반복 측정을 권장합니다.
+
+## 주요 기능
+
+- **JPA DAO**: Hibernate를 사용한 객체-관계 매핑
+- **jOOQ DAO**: 타입 안전한 SQL 쿼리 빌더
+- **벤치마킹**: 개별 삽입 vs. 배치 삽입 성능 비교
+- **다중 DB 지원**: Maven 프로필을 통한 PostgreSQL/MySQL 전환
+- **설정 외부화**: Properties 파일을 통한 설정 관리
+
+## 의존성
+
+주요 의존성은 `pom.xml`에 정의되어 있습니다:
+
+- PostgreSQL JDBC 드라이버
+- MySQL JDBC 드라이버
+- Hibernate ORM
+- jOOQ 코어 및 코드 생성
+- Build Helper Maven Plugin (생성된 소스 추가용)
 
 ## 주요 기능
 
